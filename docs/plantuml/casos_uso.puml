@@ -1,0 +1,37 @@
+@startuml
+left to right direction
+skinparam packageStyle rectangle
+
+actor "Miembro KGD" as KGD
+actor "Profesor" as Prof
+actor "Experto en Inglés" as ExpEN
+actor "Experto en Español" as ExpES
+actor "Asistente de IA" as IA
+
+rectangle "Sistema Colonia CyberAnts" {
+  usecase "CU-01: Autenticar operador y consultar ficha del equipo" as CU01
+  usecase "CU-02: Cargar coordenadas ucranianas desde archivo CSV" as CU02
+  usecase "CU-03: Evaluar tipo de arsenal mediante autómata" as CU03
+  usecase "CU-04: Gestionar ciclo de vida de hormigas en el hormiguero" as CU04
+  usecase "CU-05: Activar vuelo mediante turbo reactor" as CU05
+  usecase "CU-06: Disparar metralleta y láser de potencia variable" as CU06
+  usecase "CU-07: Recargar o reemplazar fuente de poder" as CU07
+  usecase "CU-08: Entrenar idiomas y fonética del dron" as CU08
+}
+
+Prof --> CU01
+KGD --> CU01
+KGD --> CU02
+KGD --> CU03
+KGD --> CU04
+KGD --> CU05
+KGD --> CU06
+KGD --> CU07
+IA --> CU07
+ExpEN --> CU08
+ExpES --> CU08
+
+CU03 ..> CU02 : <<include>>
+CU05 ..> CU07 : <<include>>
+CU06 ..> CU07 : <<include>>
+@enduml

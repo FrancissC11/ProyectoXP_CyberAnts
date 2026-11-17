@@ -1,0 +1,48 @@
+@startuml
+skinparam componentStyle rectangle
+
+node "Contenedor Docker (python:3.12-slim)" {
+  package "Presentación Web / Consola" {
+    [Plantillas Jinja2 (login, coordenadas, dron, hormiguero)] as UI
+    [JS Táctico (loading.js \\ | / - 100%, botones IPA)] as JS
+    [Consola Interactiva (src/console.py)] as CLI
+  }
+
+  package "Aplicación Web (src/app.py)" {
+    [Controlador Flask (/login, /, /dron, /hormiguero)] as FlaskApp
+  }
+
+  package "Dominio y Contratos (src/)" {
+    [contracts.py (IHormiga, IIA, Utility)] as Contracts
+    [auth.py (AuthService + 6 Integrantes Grupo 2)] as Auth
+    [sistema_ruso.py (SistemaRuso + CoordenadaUK)] as CSV
+    [dron.py (AntCiberDron + AutomataArsenal + ExpertoIdioma IPA)] as Dron
+    [hormigas.py (Hormiga, HLarva, HSoldado, ANectar, ACarnivoro)] as Ants
+  }
+
+  package "Persistencia y Datos (data/)" {
+    [db.py (CyberAntsDB)] as DBRepo
+    database "SQLite (cyberants.db)" as DB
+    file "Grupo02.csv (60 filas cédulas)" as FileCSV
+  }
+}
+
+cloud "Vercel" {
+  [Dashboard Roadmap XP] as VercelDash
+}
+
+UI <--> FlaskApp
+JS --> UI
+FlaskApp --> Auth
+FlaskApp --> CSV
+FlaskApp --> Dron
+FlaskApp --> Ants
+FlaskApp --> DBRepo
+CLI --> Auth
+CLI --> CSV
+CLI --> Dron
+Ants ..|> Contracts
+Dron ..|> Contracts
+DBRepo --> DB
+CSV --> FileCSV
+@enduml

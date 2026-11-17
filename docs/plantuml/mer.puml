@@ -1,0 +1,35 @@
+@startuml
+title Modelo Entidad-Relación (SQLite — src/db.py)
+
+entity "USUARIO" as usuario {
+  * id_usuario : INTEGER <<PK>>
+  --
+  * username : TEXT <<UNIQUE>>
+  * cedula : TEXT
+  * nombre_completo : TEXT
+  * rol_xp : TEXT
+  * rol_hormiguero : TEXT
+}
+
+entity "HORMIGA" as hormiga {
+  * id_hormiga : INTEGER <<PK>>
+  --
+  * tipo : TEXT (HLarva | HSoldado)
+  * sexo : TEXT (Asexual | Macho | Hembra)
+  * estado : TEXT (VIVA | MUERTA)
+  fecha_creacion : DATETIME
+}
+
+entity "HISTORIAL_ALIMENTACION" as hist {
+  * id_historial : INTEGER <<PK>>
+  --
+  * id_hormiga : INTEGER <<FK>>
+  * alimento : TEXT (Néctar | Carnívoro)
+  * tipo_resultante : TEXT
+  * estado_resultante : TEXT
+  fecha : DATETIME
+}
+
+usuario ||..o{ hormiga : "opera en hormiguero"
+hormiga ||--o{ hist : "registra alimentación"
+@enduml
