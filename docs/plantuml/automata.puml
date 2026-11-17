@@ -1,0 +1,47 @@
+@startuml
+left to right direction
+title Autómata Finito Determinista (Grupo 2) — L = { a+, ab*, ab*t+, abcdt+ }
+
+note top of q0
+  <b>Cédulas del Equipo (Últimos dígitos: 0, 2, 0, 1, 1, 2) + Terminación t:</b>
+  • Coord-00/01 -> a+ | Coord-02/09 -> ab* | ab*t+ -> at+, abt+ | Coord-05/06 -> abcdt+
+  <b>Quíntupla:</b> A = (Q, Σ, δ, q0, F)
+  <b>Q</b> = {q0, q1, q2, q3, q4, q5_pre, q5, q_err} | <b>Σ</b> = {a, b, c, d, t} | <b>F</b> = {q1, q2, q3, q5}
+  <b>Gramática Regular G = (V, Σ, P, S):</b>
+  S -> a | aA | aB | aT
+  A -> a | aA
+  B -> b | bB | bT | cC
+  C -> dD
+  D -> t | tT
+  T -> t | tT
+end note
+
+note bottom of q3
+  <b>Matriz de Transición δ(q, σ):</b>
+  q0: a->q1 | b,c,d,t->q_err
+  q1*: a->q2 | b->q3 | t->q5 | c,d->q_err
+  q2*: a->q2 | b,c,d,t->q_err
+  q3*: b->q3 | c->q4 | t->q5 | a,d->q_err
+  q4: d->q5_pre | a,b,c,t->q_err
+  q5_pre: t->q5 | a,b,c,d->q_err
+  q5*: t->q5 | a,b,c,d->q_err
+end note
+
+[*] --> q0
+q0 --> q1 : a
+q1 --> q2 : a
+q2 --> q2 : a (a+)
+q1 --> q3 : b
+q3 --> q3 : b (ab*)
+q1 --> q5 : t (at+)
+q3 --> q5 : t (ab+t+)
+q3 --> q4 : c
+q4 --> q5_pre : d
+q5_pre --> q5 : t (abcdt+)
+q5 --> q5 : t
+
+q1 --> [*] : Acepta (a)
+q2 --> [*] : Acepta (aa+)
+q3 --> [*] : Acepta (ab+)
+q5 --> [*] : Acepta (ab*t+ / abcdt+)
+@enduml

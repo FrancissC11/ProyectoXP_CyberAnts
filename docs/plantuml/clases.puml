@@ -1,0 +1,190 @@
+@startuml
+set separator none
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+package "pkAntCiberDronContract" as pkg_contract {
+  interface IHormiga {
+    + comer(alimento: Alimento): bool
+  }
+
+  interface IIA {
+    + buscar(tipoArsenal: str): bool
+  }
+
+  class Utility {
+    + {static} FRAMES: tuple
+    + {static} generar_pasos_loading(): list[str]
+  }
+
+  class SistemaRuso {
+    + ultimo_error: str
+    + advertencias: list[str]
+    + readCoord(fileName: str): list[CoordenadaUK]
+  }
+
+  class CoordenadaUK {
+    + geoposicion: str
+    + lunes: str
+    + martes: str
+    + miercoles: str
+    + jueves: str
+    + viernes: str
+    + tipoArsenal: str
+    + loading_final: str
+    + pasos_loading: list[str]
+    + to_console_line(): str
+  }
+}
+
+package "Seguridad y Persistencia (src.auth, src.db)" as pkg_sec {
+  class MiembroEquipo {
+    + orden: int
+    + cedula: str
+    + nombre: str
+    + username: str
+    + rol_xp: str
+    + rol_hormiguero: str
+    + ultimo_digito(): str
+    + coordenada_asignada(): str
+  }
+
+  class AuthService {
+    + {static} MAX_INTENTOS: int = 3
+    + {static} GRUPO_NUMERO: int = 2
+    + {static} GRUPO_NOMBRE: str
+    + intentos_fallidos: int
+    + bloqueado: bool
+    + usuario_autenticado: str
+    + autenticar(usuario: str, password: str): dict
+    + reiniciar_intentos(): None
+    + formatear_ficha_equipo(): str
+  }
+
+  class CyberAntsDB {
+    + db_path: Path
+    + init_db(): None
+    + listar_hormigas(): list[Hormiga]
+    + crear_hormiga(sexo: str): HLarva
+    + alimentar_hormiga(id_hormiga: int, nombre_alimento: str): dict
+    + listar_historial(limite: int): list[dict]
+    + reiniciar_hormiguero(): None
+  }
+}
+
+package "Dominio Hormigas Grupo 2 (src.hormigas)" as pkg_ants {
+  abstract class Hormiga {
+    + {static} ALIMENTO_VITAL: type[Alimento]
+    + {static} SEXO_POR_DEFECTO: str
+    + id: int
+    + sexo: str
+    + estado: str
+    # _validar_estado_y_alimento(alimento: Alimento): bool
+    + comer(alimento: Alimento): bool
+    + toString(): str
+  }
+
+  class HLarva extends Hormiga {
+    + comer(alimento: Alimento): bool
+  }
+
+  class HSoldado extends Hormiga {
+    + {static} ALIMENTO_VITAL = ACarnivoro
+  }
+
+  abstract class Alimento {
+    + nombre: str
+    + toString(): str
+  }
+
+  class ANectar extends Alimento
+  class ACarnivoro extends Alimento
+
+  class HormigueroVirtual {
+    + hormigas: list[Hormiga]
+    + crear_hormiga(sexo: str): HLarva
+    + obtener_hormiga(id_hormiga: int): Hormiga
+    + alimentar_hormiga(id_hormiga: int, alimento: Alimento): bool
+  }
+}
+
+package "Dominio AntCiberDron (src.dron)" as pkg_dron {
+  class AntCiberDron {
+    + automata: AutomataArsenal
+    + fuente_poder: FuentePoder
+    + turbo_reactor: TurboReactor
+    + metralleta: Metralleta
+    + laser: Laser
+    + idiomas_entrenados: dict
+    + buscar(tipoArsenal: str): bool
+    + evaluar_coordenadas(coordenadas: list[CoordenadaUK]): list[dict]
+    + volar(): bool
+    + disparar_metralleta(): bool
+    + disparar_laser(): int
+    + asistir_fuente_poder(accion: str): int
+    + entrenar_idioma(experto: ExpertoIdioma, lexico: list[str], gramatica: str, fonetica: str): dict
+  }
+
+  class AutomataArsenal {
+    + {static} Q: set[str]
+    + {static} SIGMA: set[str]
+    + {static} Q0: str
+    + {static} F: set[str]
+    + {static} DELTA: dict
+    + validar(palabra: str): bool
+    + trazar(palabra: str): dict
+  }
+
+  class FuentePoder {
+    + energia: int
+    + reemplazos: int
+    + consumir(cantidad: int): bool
+    + recargar(): int
+    + reemplazar(): int
+  }
+
+  class TurboReactor {
+    + en_vuelo: bool
+    + activar_vuelo(fuente: FuentePoder): bool
+  }
+
+  class Metralleta {
+    + municion: int
+    + disparar(rafaga: int): bool
+  }
+
+  class Laser {
+    + potencia: int
+    + sincronizar_potencia(fuente: FuentePoder): int
+    + disparar(fuente: FuentePoder): int
+  }
+
+  class ExpertoIdioma {
+    + {static} IDIOMAS_PERMITIDOS: set[str]
+    + {static} VOCALES_IPA: set[str]
+    + {static} CARACTERES_IPA_VALIDOS: set[str]
+    + nombre: str
+    + idioma: str
+    + {static} validar_fonetica_ipa(fonetica: str): str
+  }
+}
+
+Hormiga ..|> IHormiga
+AntCiberDron ..|> IIA
+AuthService o-- MiembroEquipo : autentica
+SistemaRuso --> CoordenadaUK : lee
+CoordenadaUK ..> Utility : usa
+CyberAntsDB --> Hormiga : persiste
+CyberAntsDB ..> Alimento : crea
+AntCiberDron *-- AutomataArsenal
+AntCiberDron *-- FuentePoder
+AntCiberDron *-- TurboReactor
+AntCiberDron *-- Metralleta
+AntCiberDron *-- Laser
+AntCiberDron --> ExpertoIdioma : entrenado por
+HormigueroVirtual o-- Hormiga
+Hormiga ..> Alimento : consume
+
+pkg_contract -[hidden]down-> pkg_ants
+pkg_sec -[hidden]down-> pkg_dron
+@enduml
