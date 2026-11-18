@@ -49,3 +49,24 @@ def test_entrenamiento_idiomas_solo_expertos():
 
     with pytest.raises(PermissionError):
         dron.entrenar_idioma("NoSoyExperto", ["hola"], "SVO", "/ola/")  # type: ignore[arg-type]
+
+
+@pytest.mark.parametrize(
+    "fonetica_invalida",
+    ["12345", "sin_barras", "/@#$!/", "/STRIKE/", "/bcdf/", "//", ""],
+)
+def test_entrenamiento_rechaza_fonetica_fuera_de_ipa(fonetica_invalida):
+    dron = AntCiberDron()
+    exp_es = ExpertoIdioma("Cap. Elena", "espanol")
+    with pytest.raises(ValueError):
+        dron.entrenar_idioma(exp_es, ["atacar"], "SVO", fonetica_invalida)
+
+
+def test_entrenamiento_acepta_vocales_ipa_validas():
+    dron = AntCiberDron()
+    exp_en = ExpertoIdioma("Dr. Miller", "ingles")
+    reg = dron.entrenar_idioma(exp_en, ["fire", "lock"], "SVO", "/ˈfaɪər lɒk/")
+    assert reg["fonetica"] == "/ˈfaɪər lɒk/"
+    exp_es = ExpertoIdioma("Cap. Elena", "espanol")
+    reg_es = dron.entrenar_idioma(exp_es, ["ataque"], "SVO", "/a.ˈta.ke/")
+    assert reg_es["fonetica"] == "/a.ˈta.ke/"
