@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid-2">
+  <!-- Panel 1: Crear y Alimentar Hormigas -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">03 // Gestión del Hormiguero Virtual KGD</h2>
+      <span class="panel-code">HLarva &rarr; HSoldado</span>
+    </div>
+    <div class="panel-body">
+      <table class="data-table" style="margin-bottom:16px;">
+        <thead>
+          <tr>
+            <th>TIPO_HORMIGA</th>
+            <th>ALIMENTO (VIVE)</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td><code>HLarva</code></td><td><code>Néctar</code> (nace como larva y vive con Néctar)</td></tr>
+          <tr><td><code>HSoldado</code></td><td><code>Carnívoro</code> (transforma HLarva &rarr; HSoldado y vive con Carnívoro)</td></tr>
+        </tbody>
+      </table>
+
+      <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:20px;">
+        <form method="post" action="{{ url_for('hormiguero_crear') }}" style="display:flex; gap:8px; align-items:center;">
+          <select name="sexo" style="width:160px;">
+            <option value="Asexual">Sexo inicial: Asexual</option>
+            <option value="Macho">Macho</option>
+            <option value="Hembra">Hembra</option>
+          </select>
+          <button type="submit" class="btn">+ Crear Hormiga (HLarva)</button>
+        </form>
+
+        <form method="post" action="{{ url_for('hormiguero_reiniciar') }}">
+          <button type="submit" class="btn btn-amber">Reiniciar Colonia</button>
+        </form>
+      </div>
+
+      <form method="post" action="{{ url_for('hormiguero_alimentar') }}" style="border-top:1px solid var(--border-grid); padding-top:16px;">
+        <div class="grid-3" style="align-items:end;">
+          <div>
+            <label class="panel-code">SELECCIONAR HORMIGA</label>
+            <select name="id_hormiga">
+              {% for h in hormigas %}
+              <option value="{{ h.id }}">#{{ h.id }} — {{ h.tipo }} ({{ h.estado }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div>
+            <label class="panel-code">ALIMENTO A SUMINISTRAR</label>
+            <select name="alimento">
+              <option value="Néctar">Néctar</option>
+              <option value="Carnívoro">Carnívoro</option>
+            </select>
+          </div>
+          <div>
+            <button type="submit" class="btn" style="width:100%;">Alimentar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- Panel 2: Estado de la Colonia -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Colonia Activa</h2>
+      <span class="panel-code">TOTAL INDIVIDUOS: {{ hormigas | length }}</span>
+    </div>
+    <div class="panel-body">
+      <table class="data-table" style="margin-bottom:16px;">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Tipo</th>
+            <th>Sexo</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in hormigas %}
+          <tr>
+            <td><strong>#{{ h.id }}</strong></td>
+            <td><span class="tag tag-amber">{{ h.tipo }}</span></td>
+            <td>{{ h.sexo }}</td>
+            <td>
+              {% if h.estado == 'VIVA' %}
+                <span class="tag tag-green">VIVA</span>
+              {% else %}
+                <span class="tag tag-red">MUERTA</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      {% if historial %}
+      <div class="panel-code" style="margin-bottom:6px;">BITÁCORA RECIENTE DE ALIMENTACIÓN</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Hormiga</th>
+            <th>Alimento</th>
+            <th>Tipo Resultante</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in historial %}
+          <tr>
+            <td>#{{ item.id_hormiga }}</td>
+            <td>{{ item.alimento }}</td>
+            <td>{{ item.tipo_resultante }}</td>
+            <td>{{ item.estado_resultante }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% endif %}
+    </div>
+  </section>
+</div>
+{% endblock %}

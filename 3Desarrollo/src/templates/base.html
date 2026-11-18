@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KGD // ANTDRON — {{ grupo_nombre }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-block">
+      <span class="brand-stencil">KGD // ANTDRON SYS-0{{ grupo_numero }}</span>
+      <h1 class="brand-title">{{ grupo_nombre }}</h1>
+    </div>
+
+    {% if usuario_actual %}
+    <nav class="nav-links">
+      <a href="{{ url_for('coordenadas') }}" class="nav-link {% if request.endpoint == 'coordenadas' %}active{% endif %}">
+        [01 // FICHA &amp; CSV]
+      </a>
+      <a href="{{ url_for('dron') }}" class="nav-link {% if request.endpoint == 'dron' %}active{% endif %}">
+        [02 // ANTCIBERDRON &amp; AUTÓMATA]
+      </a>
+      <a href="{{ url_for('hormiguero') }}" class="nav-link {% if request.endpoint == 'hormiguero' %}active{% endif %}">
+        [03 // HORMIGUERO VIRTUAL]
+      </a>
+      <span class="panel-code" style="margin: 0 8px;">OP: {{ usuario_actual }}</span>
+      <a href="{{ url_for('logout') }}" class="nav-link logout">[SALIR]</a>
+    </nav>
+    {% endif %}
+  </header>
+
+  <main class="workspace">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-list">
+          {% for category, msg in messages %}
+            <div class="flash-msg {{ category }}">[SISTEMA KGD] {{ msg }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <script src="{{ url_for('static', filename='js/loading.js') }}"></script>
+</body>
+</html>
