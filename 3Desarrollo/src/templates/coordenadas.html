@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+<!-- Ficha del Equipo -->
+<section class="panel">
+  <div class="panel-header">
+    <h2 class="panel-title">[+] TEAM [{{ grupo_numero }}]: {{ grupo_nombre }}</h2>
+    <span class="panel-code">CÉDULAS REALES &rarr; COORDENADAS OBJETIVO: COORD-00, COORD-01, COORD-02</span>
+  </div>
+  <div class="panel-body">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Cédula</th>
+          <th>Apellido y Nombre</th>
+          <th>Último Dígito</th>
+          <th>Coordenada Asignada</th>
+          <th>Rol XP</th>
+          <th>Rol Hormiguero</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for m in equipo %}
+        <tr>
+          <td>Alumno {{ m.orden }}</td>
+          <td><strong>{{ m.cedula }}</strong></td>
+          <td>{{ m.nombre }}</td>
+          <td><span class="tag tag-amber">{{ m.ultimo_digito }}</span></td>
+          <td><span class="tag tag-green">{{ m.coordenada_asignada }}</span></td>
+          <td>{{ m.rol_xp }}</td>
+          <td>{{ m.rol_hormiguero }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Lectura de Grupo02.csv con Loading \ | / - 100% -->
+<section class="panel">
+  <div class="panel-header">
+    <h2 class="panel-title">[+] COORDENADAS UCRANIANAS — Grupo02.csv</h2>
+    <div>
+      <button type="button" class="btn" onclick="iniciarAnimacionCSV()">
+        Recargar Animación (\ | / - 100%)
+      </button>
+    </div>
+  </div>
+  <div class="panel-body">
+    {% if error_csv %}
+      <div class="flash-msg error">
+        [ERROR CONTROLADO — SISTEMA ACTIVO] {{ error_csv }}
+      </div>
+    {% endif %}
+
+    {% if coordenadas %}
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Loading</th>
+          <th>Geoposición</th>
+          <th>Lunes</th>
+          <th>Martes</th>
+          <th>Miércoles</th>
+          <th>Jueves</th>
+          <th>Viernes</th>
+          <th>Tipo Arsenal (w)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for c in coordenadas %}
+        <tr class="coord-row">
+          <td class="loading-cell" style="font-weight:700; color:var(--signal-green);">100%</td>
+          <td><strong>{{ c.geoposicion }}</strong></td>
+          <td>{{ c.lunes }}</td>
+          <td>{{ c.martes }}</td>
+          <td>{{ c.miercoles }}</td>
+          <td>{{ c.jueves }}</td>
+          <td>{{ c.viernes }}</td>
+          <td><code>{{ c.tipoArsenal }}</code></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

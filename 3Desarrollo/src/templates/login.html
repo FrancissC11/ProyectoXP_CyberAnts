@@ -1,0 +1,72 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid-2" style="max-width: 1080px; margin: 24px auto;">
+  <!-- Panel de Autenticación KGD -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">01 // Autenticación KGD — Acceso al Hormiguero</h2>
+      <span class="panel-code">INTENTOS: {{ intentos_restantes }} / 3</span>
+    </div>
+    <div class="panel-body">
+      {% if bloqueado %}
+        <div class="flash-msg error" style="margin-bottom: 16px;">
+          [BLOQUEO TÁCTICO] Se superaron los 3 intentos permitidos. Terminal bloqueada por protocolo KGD.
+        </div>
+        <form method="post" action="{{ url_for('login_reset') }}">
+          <button type="submit" class="btn btn-amber" style="width: 100%;">
+            Restablecer Terminal KGD
+          </button>
+        </form>
+      {% else %}
+        <form method="post" action="{{ url_for('login') }}">
+          <div style="margin-bottom: 16px;">
+            <label class="panel-code" style="display:block; margin-bottom:6px;">USUARIO / CÉDULA</label>
+            <input type="text" name="username" placeholder="Ej: patmic, ecamino o 1755580402" autocomplete="off" />
+          </div>
+          <div style="margin-bottom: 16px;">
+            <label class="panel-code" style="display:block; margin-bottom:6px;">CONTRASEÑA</label>
+            <input type="password" name="password" placeholder="Contraseña (123 o número de cédula)" />
+          </div>
+          <button type="submit" class="btn" style="width: 100%;">Autenticar Operador KGD</button>
+        </form>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Panel de Credenciales Autorizadas -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Operadores Autorizados (Grupo #{{ grupo_numero }})</h2>
+      <span class="panel-code">CLAVE ESTÁNDAR: 123</span>
+    </div>
+    <div class="panel-body">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Usuario</th>
+            <th>Cédula</th>
+            <th>Operador</th>
+            <th>Rol XP</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="tag tag-amber">patmic</span></td>
+            <td>123</td>
+            <td>Profesor Evaluador</td>
+            <td>Evaluador</td>
+          </tr>
+          {% for m in equipo %}
+          <tr>
+            <td><span class="tag tag-green">{{ m.username }}</span></td>
+            <td>{{ m.cedula }}</td>
+            <td>{{ m.nombre }}</td>
+            <td>{{ m.rol_xp }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+{% endblock %}

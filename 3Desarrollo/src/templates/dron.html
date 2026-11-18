@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="grid-2">
+  <!-- Panel 1: Evaluación del Autómata sobre Coordenadas Ucranianas -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">COORDENADAS UCRANIANAS A DESTRUIR (IIA.buscar)</h2>
+      <span class="panel-code">L = { a+ , ab* , ab*t+ , abcdt+ }</span>
+    </div>
+    <div class="panel-body">
+      <p style="margin-top:0; color:var(--text-muted);">
+        Últimos dígitos de las 6 cédulas: <strong>0, 2, 0, 1, 1, 2</strong> (<code>a+</code>, <code>ab*</code>) +
+        secuencias con <code>t</code> (<code>abt</code>, <code>abtt</code>, <code>abcdt+</code>).
+      </p>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Geoposición</th>
+            <th>Tipo Arsenal</th>
+            <th>Traza Autómata</th>
+            <th>Acción (Explota)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in evaluaciones %}
+          <tr>
+            <td><strong>{{ r.geoposicion }}</strong></td>
+            <td><code>{{ r.tipoArsenal }}</code></td>
+            <td style="font-size:11.5px; color:var(--text-muted);">{{ r.recorrido }}</td>
+            <td>
+              {% if r.accion %}
+                <span class="tag tag-red">true (EXPLOTA)</span>
+              {% else %}
+                <span class="tag tag-green">false (IGNORAR)</span>
+              {% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Panel 2: Evaluador Interactivo del Autómata + Definición Formal -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Evaluador Directo del Autómata A = (Q, &Sigma;, &delta;, q0, F)</h2>
+      <span class="panel-code">IIA.buscar(tipoArsenal)</span>
+    </div>
+    <div class="panel-body">
+      <form method="post" action="{{ url_for('dron') }}" style="display:flex; gap:8px; margin-bottom:16px;">
+        <input type="hidden" name="form_action" value="probar_palabra" />
+        <input type="text" name="palabra" placeholder="Ingresa palabra w (ej: aaaa, abbb, abt, abcdttt, abc)" />
+        <button type="submit" class="btn">Evaluar</button>
+      </form>
+
+      {% if resultado_prueba %}
+      <div class="flash-msg {% if resultado_prueba.explota %}ok{% else %}error{% endif %}" style="margin-bottom:16px;">
+        <strong>Palabra:</strong> <code>{{ resultado_prueba.palabra }}</code> |
+        <strong>Traza:</strong> <code>{{ resultado_prueba.recorrido }}</code> |
+        <strong>IIA.buscar():</strong> <strong>{{ resultado_prueba.accion_str }}</strong>
+      </div>
+      {% endif %}
+
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Estado</th>
+            <th>a</th>
+            <th>b</th>
+            <th>c</th>
+            <th>d</th>
+            <th>t</th>
+            <th>Aceptación</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>q0 (Inicial)</td><td>q1</td><td>q_err</td><td>q_err</td><td>q_err</td><td>q_err</td><td>No</td></tr>
+          <tr><td>q1 *</td><td>q2</td><td>q3</td><td>q_err</td><td>q_err</td><td>q5</td><td>Sí (a)</td></tr>
+          <tr><td>q2 *</td><td>q2</td><td>q_err</td><td>q_err</td><td>q_err</td><td>q_err</td><td>Sí (a+)</td></tr>
+          <tr><td>q3 *</td><td>q_err</td><td>q3</td><td>q4</td><td>q_err</td><td>q5</td><td>Sí (ab*)</td></tr>
+          <tr><td>q4</td><td>q_err</td><td>q_err</td><td>q_err</td><td>q5_pre</td><td>q_err</td><td>No (abc)</td></tr>
+          <tr><td>q5_pre</td><td>q_err</td><td>q_err</td><td>q_err</td><td>q_err</td><td>q5</td><td>No (abcd)</td></tr>
+          <tr><td>q5 *</td><td>q_err</td><td>q_err</td><td>q_err</td><td>q_err</td><td>q5</td><td>Sí (ab*t+ / abcdt+)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+<div class="grid-2">
+  <!-- Panel 3: Subsistemas Físicos del AntCiberDron -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Subsistemas del Exoesqueleto AntCiberDron</h2>
+      <span class="panel-code">ENERGÍA: {{ dron.fuente_poder.energia }}% | NÚCLEOS REEMPLAZADOS: {{ dron.fuente_poder.reemplazos }}</span>
+    </div>
+    <div class="panel-body">
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; margin-bottom:4px;">
+          <span>FuentePoder (Asistida por IIA)</span>
+          <strong>{{ dron.fuente_poder.energia }}%</strong>
+        </div>
+        <div class="meter-track">
+          <div class="meter-fill" style="width: {{ dron.fuente_poder.energia }}%;"></div>
+        </div>
+      </div>
+
+      <table class="data-table" style="margin-bottom:16px;">
+        <tbody>
+          <tr>
+            <th>Pata Delantera Derecha (Metralleta)</th>
+            <td>Munición disponible: <strong>{{ dron.metralleta.municion }}</strong> proyectiles</td>
+          </tr>
+          <tr>
+            <th>Pata Delantera Izquierda (Láser)</th>
+            <td>Potencia variable según FuentePoder: <strong>{{ dron.laser.potencia }} kW</strong></td>
+          </tr>
+          <tr>
+            <th>Espalda (TurboReactor)</th>
+            <td>
+              Estado de vuelo:
+              {% if dron.turbo_reactor.en_vuelo %}
+                <span class="tag tag-green">EN VUELO ACTIVO</span>
+              {% else %}
+                <span class="tag tag-amber">EN TIERRA</span>
+              {% endif %}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <form method="post" action="{{ url_for('dron') }}" style="display:flex; gap:8px; flex-wrap:wrap;">
+        <input type="hidden" name="form_action" value="subsistema" />
+        <button type="submit" name="operacion" value="volar" class="btn">Activar TurboReactor (-20%)</button>
+        <button type="submit" name="operacion" value="metralleta" class="btn">Disparar Metralleta (-15)</button>
+        <button type="submit" name="operacion" value="laser" class="btn">Disparar Láser (-15%)</button>
+        <button type="submit" name="operacion" value="recargar" class="btn btn-amber">IIA: Recargar Fuente</button>
+        <button type="submit" name="operacion" value="reemplazar" class="btn btn-amber">IIA: Reemplazar Fuente</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- Panel 4: Entrenamiento de Idiomas (Inglés y Español por Expertos Parlantes) -->
+  <section class="panel">
+    <div class="panel-header">
+      <h2 class="panel-title">Entrenamiento Lingüístico (ExpertoIdioma)</h2>
+      <span class="panel-code">INGLÉS &amp; ESPAÑOL: LÉXICO, GRAMÁTICA Y FONÉTICA</span>
+    </div>
+    <div class="panel-body">
+      <table class="data-table" style="margin-bottom:16px;">
+        <thead>
+          <tr>
+            <th>Idioma</th>
+            <th>Experto Autorizado</th>
+            <th>Léxico</th>
+            <th>Gramática / Fonética</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for idioma, info in dron.idiomas_entrenados.items() %}
+          <tr>
+            <td><span class="tag tag-green">{{ idioma }}</span></td>
+            <td>{{ info.experto }}</td>
+            <td>{{ info.lexico | join(', ') }}</td>
+            <td>{{ info.gramatica }}<br><span style="color:var(--text-muted);">{{ info.fonetica }}</span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <form method="post" action="{{ url_for('dron') }}">
+        <input type="hidden" name="form_action" value="entrenar_idioma" />
+        <div class="grid-3" style="margin-bottom:12px;">
+          <div>
+            <label class="panel-code">NOMBRE DEL EXPERTO</label>
+            <input type="text" name="experto_nombre" value="Prof. Sarah Connor" />
+          </div>
+          <div>
+            <label class="panel-code">IDIOMA</label>
+            <select name="experto_idioma">
+              <option value="ingles">Inglés (ingles)</option>
+              <option value="espanol">Español (espanol)</option>
+              <option value="frances">Francés (Otro idioma)</option>
+            </select>
+          </div>
+          <div>
+            <label class="panel-code">CREDENCIAL DEL OPERADOR</label>
+            <select name="es_experto">
+              <option value="si">Experto Parlante Certificado</option>
+              <option value="no">Operador de Campo (Sin certificación de experto)</option>
+            </select>
+          </div>
+        </div>
+        <div class="grid-3" style="margin-bottom:12px;">
+          <div>
+            <label class="panel-code">LÉXICO (SEPARADO POR COMAS)</label>
+            <input type="text" name="lexico" value="fire, lock, recon, coordinates" />
+          </div>
+          <div>
+            <label class="panel-code">GRAMÁTICA</label>
+            <input type="text" name="gramatica" value="Imperative Tactical Syntax" />
+          </div>
+          <div>
+            <label class="panel-code">FONÉTICA (SOLO IPA)</label>
+            <input type="text" id="input-fonetica" name="fonetica" value="/ˈfaɪər lɒk/" />
+          </div>
+        </div>
+        <div style="margin-bottom:12px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+          <span class="panel-code">VOCALES Y MARCAS IPA:</span>
+          {% for sym in ['ɑ', 'æ', 'ɛ', 'ɪ', 'ɔ', 'ʊ', 'ʌ', 'ə', 'ˈ', 'ː', 'θ', 'ʃ', 'β', 'ɾ'] %}
+          <button type="button" class="btn" style="padding:3px 8px; font-size:12px;" onclick="insertarIPA('{{ sym }}')">{{ sym }}</button>
+          {% endfor %}
+        </div>
+        <button type="submit" class="btn">Entrenar Módulo Lingüístico</button>
+      </form>
+    </div>
+  </section>
+</div>
+<script>
+  function insertarIPA(simbolo) {
+    const inp = document.getElementById('input-fonetica');
+    if (!inp) return;
+    const pos = inp.selectionStart ?? inp.value.length;
+    inp.value = inp.value.slice(0, pos) + simbolo + inp.value.slice(pos);
+    inp.focus();
+  }
+</script>
+{% endblock %}

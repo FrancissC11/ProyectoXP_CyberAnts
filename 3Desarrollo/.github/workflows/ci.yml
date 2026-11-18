@@ -1,0 +1,20 @@
+name: Integracion Continua KGD - Colonia CyberAnts
+
+on:
+  push:
+    branches: [ "main", "master", "develop", "feat/**" ]
+  pull_request:
+
+jobs:
+  pytest-suite:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configurar Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias
+        run: pip install -r requirements.txt
+      - name: Ejecutar suite TDD (pytest)
+        run: pytest -v
