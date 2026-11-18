@@ -38,7 +38,7 @@ def crear_alimento(nombre: str) -> Alimento:
     normalizado = (nombre or "").strip().lower().replace("é", "e").replace("í", "i")
     if normalizado not in MAPA_ALIMENTOS:
         raise ValueError(f"Alimento no permitido para Grupo 2: {nombre}")
-    return MAPA_ALIMENTOS[normalizado]()
+    return MAPA_ALIMENTOS[normalizado]() # type: ignore
 
 
 class Hormiga(IHormiga, ABC):
@@ -106,7 +106,7 @@ class HLarva(Hormiga):
             return True
 
         if isinstance(alimento, ACarnivoro):
-            self.__class__ = HSoldado
+            self.__class__ = HSoldado # type: ignore
             if self.sexo == "Asexual":
                 self.sexo = HSoldado.SEXO_POR_DEFECTO
             self.estado = "VIVA"
