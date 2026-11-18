@@ -3,108 +3,60 @@ from src.sistema_ruso import CoordenadaUK
 
 
 class AutomataArsenal:
+    """
+    Autómata Finito Determinista A = (Q, Σ, δ, q0, F) del Grupo 2:
+      - Últimos dígitos de las 6 cédulas: 0, 2, 0, 1, 1, 2 (Coord-00/01: a+, Coord-02: ab*)
+      - Extensión táctica sobre {a, b, t} y abcdt+: acepta combinaciones con a, b y t.
+    Lenguaje reconocido: L = { a+, ab*, ab*t+, abcdt+ } sobre Σ = {a, b, c, d, t}.
+    """
+
+    Q = {"q0", "q1", "q2", "q3", "q4", "q5_pre", "q5", "q_err"}
     SIGMA = {"a", "b", "c", "d", "t"}
+    Q0 = "q0"
+    F = {"q1", "q2", "q3", "q5"}
+
+    DELTA = {
+        "q0":     {"a": "q1",    "b": "q_err", "c": "q_err", "d": "q_err",  "t": "q_err"},
+        "q1":     {"a": "q2",    "b": "q3",    "c": "q_err", "d": "q_err",  "t": "q5"},
+        "q2":     {"a": "q2",    "b": "q_err", "c": "q_err", "d": "q_err",  "t": "q_err"},
+        "q3":     {"a": "q_err", "b": "q3",    "c": "q4",    "d": "q_err",  "t": "q5"},
+        "q4":     {"a": "q_err", "b": "q_err", "c": "q_err", "d": "q5_pre", "t": "q_err"},
+        "q5_pre": {"a": "q_err", "b": "q_err", "c": "q_err", "d": "q_err",  "t": "q5"},
+        "q5":     {"a": "q_err", "b": "q_err", "c": "q_err", "d": "q_err",  "t": "q5"},
+        "q_err":  {"a": "q_err", "b": "q_err", "c": "q_err", "d": "q_err",  "t": "q_err"},
+    }
 
     def validar(self, palabra: str) -> bool:
+        """Evalúa si la palabra pertenece a L = { a+, ab*, ab*t+, abcdt+ }."""
         if not isinstance(palabra, str):
             return False
         w = palabra.strip()
         if not w:
             return False
 
-        estado = "q0"
+        estado = self.Q0
         for char in w:
             if char not in self.SIGMA:
                 return False
-            if estado == "q0":
-                if char == "a":
-                    estado = "q1"
-                else:
-                    return False
-            elif estado == "q1":
-                if char == "a":
-                    estado = "q2"
-                elif char == "b":
-                    estado = "q3"
-                elif char == "t":
-                    estado = "q5"
-                else:
-                    return False
-            elif estado == "q2":
-                if char == "a":
-                    estado = "q2"
-                else:
-                    return False
-            elif estado == "q3":
-                if char == "b":
-                    estado = "q3"
-                elif char == "c":
-                    estado = "q4"
-                elif char == "t":
-                    estado = "q5"
-                else:
-                    return False
-            elif estado == "q4":
-                if char == "d":
-                    estado = "q5_pre"
-                else:
-                    return False
-            elif estado == "q5_pre":
-                if char == "t":
-                    estado = "q5"
-                else:
-                    return False
-            elif estado == "q5":
-                if char == "t":
-                    estado = "q5"
-                else:
-                    return False
-            else:
+            estado = self.DELTA[estado][char]
+            if estado == "q_err":
                 return False
 
-        return estado in ("q1", "q2", "q3", "q5")
+        return estado in self.F
 
     def trazar(self, palabra: str) -> dict:
+        """Devuelve la traza paso a paso de estados para mostrar en el panel táctico."""
         if not isinstance(palabra, str) or not palabra.strip():
             return {"palabra": palabra or "", "recorrido": ["q0"], "aceptada": False}
 
         w = palabra.strip()
-        recorrido = ["q0"]
-        estado = "q0"
+        recorrido = [self.Q0]
+        estado = self.Q0
         for char in w:
             if char not in self.SIGMA:
                 estado = "q_err"
-            elif estado == "q0":
-                estado = "q1" if char == "a" else "q_err"
-            elif estado == "q1":
-                if char == "a":
-                    estado = "q2"
-                elif char == "b":
-                    estado = "q3"
-                elif char == "t":
-                    estado = "q5"
-                else:
-                    estado = "q_err"
-            elif estado == "q2":
-                estado = "q2" if char == "a" else "q_err"
-            elif estado == "q3":
-                if char == "b":
-                    estado = "q3"
-                elif char == "c":
-                    estado = "q4"
-                elif char == "t":
-                    estado = "q5"
-                else:
-                    estado = "q_err"
-            elif estado == "q4":
-                estado = "q5_pre" if char == "d" else "q_err"
-            elif estado == "q5_pre":
-                estado = "q5" if char == "t" else "q_err"
-            elif estado == "q5":
-                estado = "q5" if char == "t" else "q_err"
             else:
-                estado = "q_err"
-
+                estado = self.DELTA[estado][char]
             recorrido.append(estado)
             if estado == "q_err":
                 break
@@ -113,7 +65,7 @@ class AutomataArsenal:
             "palabra": w,
             "recorrido": recorrido,
             "estado_final": estado,
-            "aceptada": estado in ("q1", "q2", "q3", "q5"),
+            "aceptada": estado in self.F,
         }
 
 
@@ -189,9 +141,12 @@ class Laser:
 
 
 class ExpertoIdioma:
-    """Versión V1 (ANTES DEL REFACTOR): sin validación de caracteres IPA."""
+    """Experto parlante autorizado para entrenar inglés o español en el AntCiberDron."""
 
     IDIOMAS_PERMITIDOS = {"ingles", "espanol"}
+    VOCALES_IPA = set("aeiouɑæɐɒɛɜɞəɨɪɔøœɶʊʌʏy")
+    CONSONANTES_Y_MARCAS_IPA = set("pbtdkgɡfvθðszʃʒhmnŋlrɾɹjwβɣʎɲxʧʤʔˈˌː. ")
+    CARACTERES_IPA_VALIDOS = VOCALES_IPA | CONSONANTES_Y_MARCAS_IPA
 
     def __init__(self, nombre: str, idioma: str):
         nombre_limpio = (nombre or "").strip()
@@ -209,8 +164,40 @@ class ExpertoIdioma:
         self.nombre = nombre_limpio
         self.idioma = idioma_norm
 
+    @classmethod
+    def validar_fonetica_ipa(cls, fonetica: str) -> str:
+        """Valida que la transcripción esté entre /.../ o [...] y use solo caracteres IPA con al menos una vocal."""
+        texto = (fonetica or "").strip()
+        for prefijo in ("IPA ", "AFI ", "ipa ", "afi "):
+            if texto.startswith(prefijo):
+                texto = texto[len(prefijo):].strip()
+
+        es_barra = len(texto) >= 3 and texto.startswith("/") and texto.endswith("/")
+        es_corchete = len(texto) >= 3 and texto.startswith("[") and texto.endswith("]")
+        if not (es_barra or es_corchete):
+            raise ValueError(
+                "Fonética inválida: debe ir entre /.../ o [...] usando caracteres del Alfabeto Fonético Internacional (IPA)."
+            )
+
+        cuerpo = texto[1:-1].strip()
+        if not cuerpo or any(ch not in cls.CARACTERES_IPA_VALIDOS for ch in cuerpo):
+            raise ValueError(
+                "Fonética inválida: contiene caracteres fuera del Alfabeto Fonético Internacional (IPA)."
+            )
+        if not any(ch in cls.VOCALES_IPA for ch in cuerpo):
+            raise ValueError(
+                "Fonética inválida: la transcripción IPA debe incluir al menos una vocal fonética."
+            )
+        return texto
+
 
 class AntCiberDron(IIA):
+    """
+    Exoesqueleto táctico AntCiberDron que integra el autómata de destrucción de arsenal,
+    extremidades armadas (metralleta derecha, láser izquierdo), turbo reactor, fuente de
+    poder asistida por IIA y módulo de entrenamiento de idiomas (inglés y español).
+    """
+
     def __init__(self):
         self.automata = AutomataArsenal()
         self.fuente_poder = FuentePoder(energia=100)
@@ -234,9 +221,11 @@ class AntCiberDron(IIA):
         }
 
     def buscar(self, tipoArsenal: str) -> bool:
+        """Implementación de IIA.buscar(tipoArsenal): devuelve True si la bomba debe explotar."""
         return self.automata.validar(tipoArsenal)
 
     def evaluar_coordenadas(self, coordenadas: list[CoordenadaUK]) -> list[dict]:
+        """Evalúa cada coordenada con el autómata y devuelve el reporte táctico."""
         resultados = []
         for c in coordenadas:
             accion = self.buscar(c.tipoArsenal)
@@ -264,6 +253,7 @@ class AntCiberDron(IIA):
         return self.laser.disparar(self.fuente_poder)
 
     def asistir_fuente_poder(self, accion: str = "recargar") -> int:
+        """Asistencia del IIA para recargar o reemplazar la fuente de poder."""
         if accion == "reemplazar":
             energia = self.fuente_poder.reemplazar()
         else:
@@ -280,9 +270,10 @@ class AntCiberDron(IIA):
             )
         lexico_limpio = [w.strip() for w in (lexico or []) if str(w).strip()]
         gramatica_limpia = (gramatica or "").strip()
-        fonetica_limpia = (fonetica or "").strip()
-        if not lexico_limpio or not gramatica_limpia or not fonetica_limpia:
-            raise ValueError("El entrenamiento requiere léxico, gramática y fonética no vacíos.")
+        if not lexico_limpio or not gramatica_limpia:
+            raise ValueError("El entrenamiento requiere léxico y gramática no vacíos.")
+
+        fonetica_limpia = ExpertoIdioma.validar_fonetica_ipa(fonetica)
 
         registro = {
             "experto": experto.nombre,

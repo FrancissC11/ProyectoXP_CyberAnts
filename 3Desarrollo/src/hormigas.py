@@ -25,28 +25,54 @@ class ACarnivoro(Alimento):
         super().__init__("Carnívoro")
 
 
+MAPA_ALIMENTOS: dict[str, type[Alimento]] = {
+    "nectar": ANectar,
+    "anectar": ANectar,
+    "carnivoro": ACarnivoro,
+    "acarnivoro": ACarnivoro,
+}
+
+
 def crear_alimento(nombre: str) -> Alimento:
-    """Versión ANTES DEL REFACTOR: fábrica con condicionales if/elif."""
+    """Fábrica simple de alimentos del Grupo 2 (Néctar y Carnívoro)."""
     normalizado = (nombre or "").strip().lower().replace("é", "e").replace("í", "i")
-    if normalizado == "nectar" or normalizado == "anectar":
-        return ANectar()
-    elif normalizado == "carnivoro" or normalizado == "acarnivoro":
-        return ACarnivoro()
-    else:
+    if normalizado not in MAPA_ALIMENTOS:
         raise ValueError(f"Alimento no permitido para Grupo 2: {nombre}")
+    return MAPA_ALIMENTOS[normalizado]()
 
 
 class Hormiga(IHormiga, ABC):
-    """Versión ANTES DEL REFACTOR: sin Template Method en comer()."""
+    """
+    Clase abstracta Hormiga refactorizada con Template Method y ALIMENTO_VITAL.
+    Implementa IHormiga.comer(Alimento) sin duplicación entre subclases.
+    """
 
-    def __init__(self, id: int = 1, sexo: str = "Asexual", estado: str = "VIVA"):
+    ALIMENTO_VITAL: type[Alimento] = ANectar
+    SEXO_POR_DEFECTO: str = "Asexual"
+
+    def __init__(self, id: int = 1, sexo: str | None = None, estado: str = "VIVA"):
         self.id = int(id)
-        self.sexo = sexo
+        self.sexo = sexo or self.SEXO_POR_DEFECTO
         self.estado = estado
 
     @property
     def tipo(self) -> str:
         return self.__class__.__name__
+
+    def _validar_estado_y_alimento(self, alimento: Alimento) -> bool:
+        if self.estado == "MUERTA" or not isinstance(alimento, Alimento):
+            self.estado = "MUERTA"
+            return False
+        return True
+
+    def comer(self, alimento: Alimento) -> bool:
+        if not self._validar_estado_y_alimento(alimento):
+            return False
+        if isinstance(alimento, self.ALIMENTO_VITAL):
+            self.estado = "VIVA"
+            return True
+        self.estado = "MUERTA"
+        return False
 
     def toString(self) -> str:
         return f"{self.tipo} [ID={self.id} | Sexo={self.sexo} | Estado={self.estado}]"
@@ -56,45 +82,42 @@ class Hormiga(IHormiga, ABC):
 
 
 class HSoldado(Hormiga):
-    def __init__(self, id: int = 1, sexo: str = "Macho", estado: str = "VIVA"):
-        super().__init__(id=id, sexo=sexo, estado=estado)
+    """Hormiga Soldado (Grupo 2): vive exclusivamente comiendo Carnívoro."""
 
-    # CÓDIGO DUPLICADO #1 (repite la validación de estado y tipo de alimento de HLarva)
-    def comer(self, alimento: Alimento) -> bool:
-        if self.estado == "MUERTA" or not isinstance(alimento, Alimento):
-            self.estado = "MUERTA"
-            return False
-        if isinstance(alimento, ACarnivoro):
-            self.estado = "VIVA"
-            return True
-        self.estado = "MUERTA"
-        return False
+    ALIMENTO_VITAL = ACarnivoro
+    SEXO_POR_DEFECTO = "Macho"
 
 
 class HLarva(Hormiga):
-    def __init__(self, id: int = 1, sexo: str = "Asexual", estado: str = "VIVA"):
-        super().__init__(id=id, sexo=sexo, estado=estado)
+    """
+    Toda hormiga del Grupo 2 nace como HLarva y vive comiendo Néctar.
+    Si come Carnívoro, evoluciona a HSoldado.
+    """
 
-    # CÓDIGO DUPLICADO #2 (repite validación y ramas explícitas)
+    ALIMENTO_VITAL = ANectar
+    SEXO_POR_DEFECTO = "Asexual"
+
     def comer(self, alimento: Alimento) -> bool:
-        if self.estado == "MUERTA" or not isinstance(alimento, Alimento):
-            self.estado = "MUERTA"
+        if not self._validar_estado_y_alimento(alimento):
             return False
+
         if isinstance(alimento, ANectar):
             self.estado = "VIVA"
             return True
+
         if isinstance(alimento, ACarnivoro):
             self.__class__ = HSoldado
             if self.sexo == "Asexual":
-                self.sexo = "Macho"
+                self.sexo = HSoldado.SEXO_POR_DEFECTO
             self.estado = "VIVA"
             return True
+
         self.estado = "MUERTA"
         return False
 
 
 def reconstruir_hormiga(id: int, tipo: str, sexo: str, estado: str) -> Hormiga:
-    clases = {
+    clases: dict[str, type[Hormiga]] = {
         "HLarva": HLarva,
         "HSoldado": HSoldado,
     }
@@ -103,6 +126,8 @@ def reconstruir_hormiga(id: int, tipo: str, sexo: str, estado: str) -> Hormiga:
 
 
 class HormigueroVirtual:
+    """Gestiona la colonia de hormigas del Grupo 2 (HLarva -> HSoldado)."""
+
     def __init__(self):
         self.hormigas: list[Hormiga] = []
         self._next_id = 1
@@ -115,10 +140,7 @@ class HormigueroVirtual:
         return nueva
 
     def obtener_hormiga(self, id_hormiga: int) -> Hormiga | None:
-        for h in self.hormigas:
-            if h.id == id_hormiga:
-                return h
-        return None
+        return next((h for h in self.hormigas if h.id == id_hormiga), None)
 
     def alimentar_hormiga(self, id_hormiga: int, alimento: Alimento) -> bool:
         hormiga = self.obtener_hormiga(id_hormiga)
