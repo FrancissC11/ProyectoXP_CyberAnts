@@ -27,7 +27,7 @@ EQUIPO_CYBERANTS: tuple[MiembroEquipo, ...] = (
         nombre="Chuga Juan",
         username="jchuga",
         aliases=("jchuga", "juan", "0402132500"),
-        rol_xp="Programador (Pareja 1)",
+        rol_xp="Programador (Pareja 1) + Tracker",
         rol_hormiguero="Hormiga Soldado",
     ),
     MiembroEquipo(
@@ -36,7 +36,7 @@ EQUIPO_CYBERANTS: tuple[MiembroEquipo, ...] = (
         nombre="Camino Emilio",
         username="ecamino",
         aliases=("ecamino", "emilio", "1755580402"),
-        rol_xp="Coach XP + Tracker",
+        rol_xp="Coach XP + Gestor",
         rol_hormiguero="Hormiga Exploradora",
     ),
     MiembroEquipo(
@@ -45,16 +45,16 @@ EQUIPO_CYBERANTS: tuple[MiembroEquipo, ...] = (
         nombre="Casa Fernando",
         username="fcasa",
         aliases=("fcasa", "fernando", "0503855330"),
-        rol_xp="Programador (Pareja 1)",
+        rol_xp="Programador (Pareja 1) + Tester",
         rol_hormiguero="Hormiga Obrera",
     ),
     MiembroEquipo(
         orden=4,
         cedula="1726339151",
-        nombre="Carcelén Josue",
+        nombre="Carcelén Josué",
         username="jcarcelen",
         aliases=("jcarcelen", "josue", "1726339151"),
-        rol_xp="Programador (Pareja 2)",
+        rol_xp="Programador (Pareja 2) + Tester",
         rol_hormiguero="Hormiga Centinela",
     ),
     MiembroEquipo(
@@ -72,7 +72,7 @@ EQUIPO_CYBERANTS: tuple[MiembroEquipo, ...] = (
         nombre="Cartagena Franciss",
         username="fcartagena",
         aliases=("fcartagena", "franciss", "1005444912"),
-        rol_xp="Cliente / Product Owner",
+        rol_xp="Cliente",
         rol_hormiguero="Hormiga Reina",
     ),
 )
